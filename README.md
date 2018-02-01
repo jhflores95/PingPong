@@ -3,6 +3,7 @@
 ## Contents
 
 * [Overview](#overview)
+* [Design](#design)
   * [Task 1: Run the game](#task-1-run-the-game)
   * [Task 2: RTFC](#task-2-rtfc)
   * [Task 3: Tap ’em signals\!](#task-3-tap-em-signals)
@@ -20,6 +21,8 @@ In this lab, you will learn how to work with fixed-point numbers and arithmetic.
 
 Unlike Labs 1 and 2, where you wrote most of the code yourself, here you will be given a working RTL implementation that you will enhance in several ways. Although this means that the amount of SystemVerilog that you write in this lab is less than in other labs, it also means you will need to spend some time understanding someone else's code. In the industry, rarely will you get to write your own code from scratch; usually projects are done by modifying an existing code base. The ability to read and understand existing code is as important as being able to write your own code.
 
+
+## Design
 
 ### Task 1: Run the game
 
@@ -56,7 +59,7 @@ The game we have given you isn't much fun as-is. In this task, your job will be 
 
 1. Everything is black and white. Choose a new colour scheme. The ball and paddles should be different colours (not white). This is trivial.
 
-2. Playing with only one ball on the screen is too easy. Add a second ball (so there are two balls moving on the screen at the same time). Set the start positions of the two balls so they are not on-top of each other. One of the balls should start moving up and to the right at 45 degrees, while the other ball should start by moving to the right and down at 45 degrees, as illustrated in the following diagram. (Hint: this is fairly easy, and the easiest solution involves adding extra states to the existing state machine. If you find yourself adding a second state machine, you are probably making it much harder than it has to be.) The player should be able to choose how many balls to play with: if `SW[0]` == 1, we will have two balls, and if `SW[0]` == 0, we will have the one original ball.
+2. Playing with only one ball on the screen is too easy. Add a second ball (so there are two balls moving on the screen at the same time). Set the start positions of the two balls so they are not on-top of each other. One of the balls should start moving up and to the right at 45°, while the other ball should start by moving to the right and down at 45°, as illustrated in the following diagram. (Hint: this is fairly easy, and the easiest solution involves adding extra states to the existing state machine. If you find yourself adding a second state machine, you are probably making it much harder than it has to be.) The player should be able to choose how many balls to play with: if `SW[0]` == 1, we will have two balls, and if `SW[0]` == 0, we will have the one original ball.
 
 3. The initial conditions are a bit boring. If `SW[1]` is high, then the paddle should start flushed all the way left (if `SW[2]` == 0) or all the way right (if `SW[2]` == 1). If `SW[1]` == 0, the paddle should start in the centre as in the original code.
 
@@ -72,9 +75,9 @@ In the original circuit, the balls move at 45° only. A more realistic game woul
 
 The simplest way to implement this is to use a fixed-point representation for the ball position and the ball velocity. For each, use **8 integer bits and 8 fractional bits**.
 
-In the fixed-point implementation, when the ball collides with a wall or paddle, it should exit the bounce at the correct angle, so if it comes into the wall at 30 degrees, it should exit the wall at 30 degrees. (This isn't nearly as hard as it sounds.)
+In the fixed-point implementation, when the ball collides with a wall or paddle, it should exit the bounce at the correct angle, so if it comes into the wall at 30°, it should exit the wall at 30°. (This isn't nearly as hard as it sounds.)
 
-Once you have your implementation, test your design with several initial velocity vectors for each ball. To get ready for the following tasks, set your initial velocity vectors as shown in this diagram (this corresponds to 30 degrees for Ball 1 and 15 degrees for Ball 2).
+Once you have your implementation, test your design with several initial velocity vectors for each ball. To get ready for the following tasks, set your initial velocity vectors as shown in this diagram (this corresponds to 30° for Ball 1 and 15° for Ball 2).
 
 
 ### Task 7: Double trouble
