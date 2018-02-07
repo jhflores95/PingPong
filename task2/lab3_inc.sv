@@ -84,10 +84,10 @@ parameter VELOCITY_START_Y_2 = 1;
 // This parameter indicates how many times the counter should count in the
 // START state between each invocation of the main loop of the program.
 // A larger value will result in a slower game.  The current setting will    
-// cause the machine to wait in the start state for 1/6 of a second between 
+// cause the machine to wait in the start state for 1/14 of a second between 
 // each invocation of the main loop.  The 50000000 is because we are
 // clocking our circuit with a 50Mhz clock. 
   
-parameter LOOP_SPEED = 50000000/6;  // 6Hz
+parameter LOOP_SPEED = 50000000/14; 
   
 `endif // _my_incl_vh_
