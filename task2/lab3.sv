@@ -1,6 +1,6 @@
 `include "lab3_inc.sv"
 
-////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 //
 //  This file is the starting point for Lab 3.  This design implements
 //  a simple pong game, with a paddle at the bottom and one ball that
@@ -56,7 +56,10 @@ reg [DATA_WIDTH_COORD-1:0] paddle_x;
 // In this implementation, the puck velocity has two components: an x component
 // and a y component.  Each component is always +1 or -1.
 
-point puck;
+// "point" and "velocity" are structures which help declare the required x and y coords 
+// See lab3_inc.sv (21)
+
+point puck; 
 velocity puck_velocity;
 
 // This will be used as a counter variable in the IDLE state
@@ -73,7 +76,7 @@ integer clock_counter = 0;
 vga_adapter #( .RESOLUTION("160x120")) vga_u0(.resetn(KEY[3]), .clock(CLOCK_50), .*);
 
 // the x and y lines of the VGA controller will be always
-// driven by draw.x and draw.y.   The process below will update
+// driven by draw.x and draw.y. The process below will update
 // signals draw.x and draw.y.
 
 assign x = draw.x[7:0];
@@ -89,8 +92,6 @@ assign y = draw.y[6:0];
 
 // Notice that this is written as a pattern-3 process (sequential with an
 // asynchronous reset)
-
-
 
 always_ff @(posedge CLOCK_50, negedge KEY[3])
 
@@ -120,7 +121,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
          // The INIT state sets the variables to their default values
          // ============================================================
 
-         INIT : begin
+          INIT : begin
             draw.x <= 0;
             draw.y <= 0;
             paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
@@ -128,17 +129,20 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
             puck.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
             puck_velocity.x <= VELOCITY_START_X[DATA_WIDTH_COORD-1:0];
             puck_velocity.y <= VELOCITY_START_Y[DATA_WIDTH_COORD-1:0];
-            colour <= BLACK;
+            colour <= YELLOW;
             plot <= 1'b1;
             state <= START;
            end	 // case INIT
 
-       // ============================================================
-         // the START state is used to clear the screen.  We will spend many cycles
-       // in this state, because only one pixel can be updated each cycle.  The
-       // counters in draw.x and draw.y will be used to keep track of which pixel
-       // we are erasing.
-       // ============================================================
+      // ============================================================
+      // the START state is used to clear the screen.  We will spend many cycles
+      // in this state, because only one pixel can be updated each cycle.  The
+      // counters in draw.x and draw.y will be used to keep track of which pixel
+      // we are erasing.
+      // ============================================================
+
+      // The START state clears the screen every cycle, and re-draws the puck and paddle in 
+      // a new or same position.
 
          START: begin
 
@@ -149,129 +153,155 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
          // We are done erasing the screen.  Set the next state
          // to DRAW_TOP_ENTER
 
-                 state <= DRAW_TOP_ENTER;
+                state <= DRAW_TOP_ENTER;
 
-               end else begin
+                end else begin
 
          // In this cycle we will be erasing a pixel.  Update
          // draw.y so that next time it will erase the next pixel
 
-                 draw.y <= draw.y + 1'b1;
-      			  draw.x <= 1'b0;
-               end  // else
-             end else begin
+                draw.y <= draw.y + 1'b1;
+      			    draw.x <= 1'b0;
+                end  // else
+              end else begin
 
                // Update draw.x so next time it will erase the next pixel
 
                draw.x <= draw.x + 1'b1;
 
-     end // if
-           end // case START
+            end // if
+            end // case START
 
       // ============================================================
-        // The DRAW_TOP_ENTER state draws the first pixel of the bar on
+      // The DRAW_TOP_ENTER state draws the first pixel of the bar on
       // the top of the screen.  The machine only stays here for
       // one cycle; the next cycle it is in DRAW_TOP_LOOP to draw the
       // rest of the bar.
       // ============================================================
 
       DRAW_TOP_ENTER: begin
-         draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
+
+      // Position x and y on the top left corner
+
+      draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
       draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
-      colour <= WHITE;
+
+      // Set color for the top border
+
+      colour <= border_color;
+
+      // Move to next state
+
       state <= DRAW_TOP_LOOP;
       end // case DRAW_TOP_ENTER
 
       // ============================================================
-        // The DRAW_TOP_LOOP state is used to draw the rest of the bar on
+      // The DRAW_TOP_LOOP state is used to draw the rest of the bar on
       // the top of the screen.
-        // Since we can only update one pixel per cycle,
-        // this will take multiple cycles
+      // Since we can only update one pixel per cycle,
+      // this will take multiple cycles
       // ============================================================
 
         DRAW_TOP_LOOP: begin
 
-           // See if we have been in this state long enough to have completed the line
-    		  if (draw.x == RIGHT_LINE) begin
-         // if so, the next state is DRAW_RIGHT_ENTER
-              state <= DRAW_RIGHT_ENTER; // next state is DRAW_RIGHT
+            // See if we have been in this state long enough to have completed the line
+    
+      		  if (draw.x == RIGHT_LINE) begin
+    
+            // if so, the next state is DRAW_RIGHT_ENTER
+      
+              state <= DRAW_RIGHT_ENTER;
+      
            end else begin
 
-      // Otherwise, update draw.x to point to the next pixel
+            // Otherwise, update draw.x to point to the next pixel
+             
               draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
               draw.x <= draw.x + 1'b1;
 
-      // Do not change the state, since we want to come back to this state
-      // the next time we come through this process (at the next rising clock
-      // edge) to finish drawing the line
+      // Do not change the state, since we want to come back at the next 
+      // rising clocK edge to finish drawing the line.
 
             end
            end //case DRAW_TOP_LOOP
       // ============================================================
-        // The DRAW_RIGHT_ENTER state draws the first pixel of the bar on
+      // The DRAW_RIGHT_ENTER state draws the first pixel of the bar on
       // the right-side of the screen.  The machine only stays here for
       // one cycle; the next cycle it is in DRAW_RIGHT_LOOP to draw the
       // rest of the bar.
       // ============================================================
 
       DRAW_RIGHT_ENTER: begin
-         draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
+
+      // Set position to top right
+
+      draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
       draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+      
+      // Move to next state
+      
       state <= DRAW_RIGHT_LOOP;
       end // case DRAW_RIGHT_ENTER
 
-      // ============================================================
-        // The DRAW_RIGHT_LOOP state is used to draw the rest of the bar on
+      // =================================================================
+      // The DRAW_RIGHT_LOOP state is used to draw the rest of the bar on
       // the right side of the screen.
-        // Since we can only update one pixel per cycle,
-        // this will take multiple cycles
-      // ============================================================
+      // Since we can only update one pixel per cycle, this will take 
+      // multiple cycles
+      // =================================================================
 
       DRAW_RIGHT_LOOP: begin
 
       // See if we have been in this state long enough to have completed the line
        	  if (draw.y == SCREEN_HEIGHT-1) begin
 
-         // We are done, so the next state is DRAW_LEFT_ENTER
+      // We are done, so the next state is DRAW_LEFT_ENTER
 
-              state <= DRAW_LEFT_ENTER;	// next state is DRAW_LEFT
+              state <= DRAW_LEFT_ENTER;
             end else begin
 
       // Otherwise, update draw.y to point to the next pixel
+
               draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
               draw.y <= draw.y + 1'b1;
             end
            end //case DRAW_RIGHT_LOOP
       // ============================================================
-        // The DRAW_LEFT_ENTER state draws the first pixel of the bar on
+      // The DRAW_LEFT_ENTER state draws the first pixel of the bar on
       // the left-side of the screen.  The machine only stays here for
       // one cycle; the next cycle it is in DRAW_LEFT_LOOP to draw the
       // rest of the bar.
       // ============================================================
 
       DRAW_LEFT_ENTER: begin
-         draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
+
+      // Set pixel to the top left
+
+      draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
       draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+
+      // Next state!
+
       state <= DRAW_LEFT_LOOP;
       end // case DRAW_LEFT_ENTER
 
-      // ============================================================
-        // The DRAW_LEFT_LOOP state is used to draw the rest of the bar on
+      // ================================================================
+      // The DRAW_LEFT_LOOP state is used to draw the rest of the bar on
       // the left side of the screen.
-        // Since we can only update one pixel per cycle,
-        // this will take multiple cycles
-      // ============================================================
+      // Since we can only update one pixel per cycle,
+      // this will take multiple cycles.
+      // ================================================================
 
       DRAW_LEFT_LOOP: begin
 
       // See if we have been in this state long enough to have completed the line
           if (draw.y == SCREEN_HEIGHT-1) begin
 
-         // We are done, so get things set up for the IDLE state, which
-      // comes next.
+          // We are done, so get things set up for the IDLE state, which
+          // comes next.
 
-              state <= IDLE;  // next state is IDLE
-      clock_counter <= 0;  // initialize counter we will use in IDLE
+            state <= IDLE;
+            clock_counter <= 0;  // initialize counter we will use in IDLE
 
             end else begin
 
@@ -282,51 +312,58 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
            end //case DRAW_LEFT_LOOP
 
 
-      // ============================================================
-        // The IDLE state is basically a delay state.  If we didn't have this,
+      // ==============================================================================
+      // The IDLE state is basically a delay state.  If we didn't have this,
       // we'd be updating the puck location and paddle far too quickly for the
-      // the user.  So, this state delays for 1/8 of a second.  Once the delay is
+      // the user. So, this state delays for 1/8 of a second.  Once the delay is
       // done, we can go to state ERASE_PADDLE.  Note that we do not try to
       // delay using any sort of wait statement: that won't work (not synthesziable).
-      // We have to build a counter to count a certain number of clock cycles.
-      // ============================================================
+      // We have to build a COUNTER to count a certain number of clock cycles.
+      // ==============================================================================
 
         IDLE: begin
 
-        // See if we are still counting.  LOOP_SPEED indicates the maximum
-     // value of the counter
+          // See if we are still counting.  LOOP_SPEED indicates the maximum
+          // value of the counter
 
-     plot <= 1'b0;  // nothing to draw while we are in this state
+          plot <= 1'b0;  // nothing to draw while we are in this state
 
           if (clock_counter < LOOP_SPEED) begin
-        clock_counter <= clock_counter + 1'b1;
+            
+            clock_counter <= clock_counter + 1'b1;
+          
           end else begin
 
          // otherwise, we are done counting.  So get ready for the
-      // next state which is ERASE_PADDLE_ENTER
+         // next state which is ERASE_PADDLE_ENTER
 
               clock_counter <= 0;
-              state <= ERASE_PADDLE_ENTER;  // next state
+              state <= ERASE_PADDLE_ENTER;
 
-     end  // if
-        end // case IDLE
+          end  // if
+          end // case IDLE
 
       // ============================================================
-        // In the ERASE_PADDLE_ENTER state, we will erase the first pixel of
+      // In the ERASE_PADDLE_ENTER state, we will erase the first pixel of
       // the paddle. We will only stay here one cycle; the next cycle we will
       // be in ERASE_PADDLE_LOOP which will erase the rest of the pixels
       // ============================================================
 
       ERASE_PADDLE_ENTER: begin
-           draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-         draw.x <= paddle_x;
-           colour <= BLACK;
-           plot <= 1'b1;
-           state <= ERASE_PADDLE_LOOP;
+
+        draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
+        draw.x <= paddle_x;
+
+        // Choose background color
+
+        colour <= bg_color;
+
+        plot <= 1'b1;
+        state <= ERASE_PADDLE_LOOP;
      end // case ERASE_PADDLE_ENTER
 
       // ============================================================
-        // In the ERASE_PADDLE_LOOP state, we will erase the rest of the paddle.
+      // In the ERASE_PADDLE_LOOP state, we will erase the rest of the paddle.
       // Since the paddle consists of multiple pixels, we will stay in this state for
       // multiple cycles.  draw.x will be used as the counter variable that
       // cycles through the pixels that make up the paddle.
@@ -399,8 +436,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
               // In this state, draw the first element of the paddle
 
    		     draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-      draw.x <= paddle_x;  // get ready for next state
-              colour <= WHITE; // when we draw the paddle, the colour will be WHITE
+          draw.x <= paddle_x;  // get ready for next state
+          colour <= PURPLE; // when we draw the paddle, the colour will be WHITE
             state <= DRAW_PADDLE_LOOP;
             end // case DRAW_PADDLE_ENTER
 
@@ -433,13 +470,13 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
       end // case DRAW_PADDLE_LOOP
 
       // ============================================================
-        // The ERASE_PUCK state erases the puck from its old location
+      // The ERASE_PUCK state erases the puck from its old location
       // At also calculates the new location of the puck. Note that since
       // the puck is only one pixel, we only need to be here for one cycle.
       // ============================================================
 
         ERASE_PUCK:  begin
-      colour <= BLACK;  // erase by setting colour to black
+      colour <= YELLOW;  // erase by setting colour to background's color
               plot <= 1'b1;
       draw <= puck;  // the x and y lines are driven by "puck" which
                      // holds the location of the puck.
@@ -477,16 +514,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
      end // ERASE_PUCK
 
       // ============================================================
-        // The DRAW_PUCK draws the puck.  Note that since
+      // The DRAW_PUCK draws the puck.  Note that since
       // the puck is only one pixel, we only need to be here for one cycle.
       // ============================================================
 
-        DRAW_PUCK: begin
-      colour <= WHITE;
-              plot <= 1'b1;
+      DRAW_PUCK: begin
+      colour <= PURPLE;
+      plot <= 1'b1;
       draw <= puck;
       state <= IDLE;	  // next state is IDLE (which is the delay state)
-           end // case DRAW_PUCK
+      end // case DRAW_PUCK
 
  		  // ============================================================
         // We'll never get here, but good practice to include it anyway

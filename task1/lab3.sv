@@ -1,6 +1,6 @@
 `include "lab3_inc.sv"
 
-////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 //
 //  This file is the starting point for Lab 3.  This design implements
 //  a simple pong game, with a paddle at the bottom and one ball that
@@ -56,7 +56,10 @@ reg [DATA_WIDTH_COORD-1:0] paddle_x;
 // In this implementation, the puck velocity has two components: an x component
 // and a y component.  Each component is always +1 or -1.
 
-point puck;
+// "point" and "velocity" are structures which help declare the required x and y coords 
+// See lab3_inc.sv (21)
+
+point puck; 
 velocity puck_velocity;
 
 // This will be used as a counter variable in the IDLE state
@@ -120,7 +123,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
          // The INIT state sets the variables to their default values
          // ============================================================
 
-         INIT : begin
+          INIT : begin
             draw.x <= 0;
             draw.y <= 0;
             paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
@@ -477,16 +480,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
      end // ERASE_PUCK
 
       // ============================================================
-        // The DRAW_PUCK draws the puck.  Note that since
+      // The DRAW_PUCK draws the puck.  Note that since
       // the puck is only one pixel, we only need to be here for one cycle.
       // ============================================================
 
-        DRAW_PUCK: begin
+      DRAW_PUCK: begin
       colour <= WHITE;
-              plot <= 1'b1;
+      plot <= 1'b1;
       draw <= puck;
       state <= IDLE;	  // next state is IDLE (which is the delay state)
-           end // case DRAW_PUCK
+      end // case DRAW_PUCK
 
  		  // ============================================================
         // We'll never get here, but good practice to include it anyway

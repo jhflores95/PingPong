@@ -31,7 +31,7 @@ typedef struct {
    reg signed [DATA_WIDTH_COORD-1:0] y;
 } velocity;
   
-  //Colours.  
+//Colours.  
 parameter BLACK = 3'b000;
 parameter BLUE  = 3'b001;
 parameter GREEN = 3'b010;
@@ -41,13 +41,21 @@ parameter PURPLE = 3'b101;
 parameter YELLOW = 3'b110;
 parameter WHITE = 3'b111;
 
+// Pick your poison.
+
+parameter bg_color = BLACK;
+parameter puck_color = PURPLE;
+parameter paddle_color = YELLOW;
+parameter border_colour = WHITE;
+
+
 // We are going to write this as a state machine.  The following
 // is a list of states that the state machine can be in.
 
 typedef enum int unsigned {INIT = 1 , START = 2, 
               DRAW_TOP_ENTER = 4, DRAW_TOP_LOOP = 8, 
-              DRAW_RIGHT_ENTER = 16, DRAW_RIGHT_LOOP =32,
-              DRAW_LEFT_ENTER = 64, DRAW_LEFT_LOOP = 128, IDLE =256, 
+              DRAW_RIGHT_ENTER = 16, DRAW_RIGHT_LOOP = 32,
+              DRAW_LEFT_ENTER = 64, DRAW_LEFT_LOOP = 128, IDLE = 256, 
               ERASE_PADDLE_ENTER = 512, ERASE_PADDLE_LOOP = 1024, 
               DRAW_PADDLE_ENTER = 2048, DRAW_PADDLE_LOOP = 4096, 
               ERASE_PUCK = 8192, DRAW_PUCK = 16384 } draw_state_type;  
@@ -66,10 +74,11 @@ parameter RIGHT_LINE = SCREEN_WIDTH - 5;
 parameter LEFT_LINE = 5;
 
 // These parameters describe the starting location for the puck 
-parameter FACEOFF_X = SCREEN_WIDTH/2;
-parameter FACEOFF_Y = SCREEN_HEIGHT/2;
+parameter FACEOFF_X = SCREEN_WIDTH / 2;
+parameter FACEOFF_Y = SCREEN_HEIGHT / 2;
   
 // Starting Velocity
+// Ball moves to the top right (45 deg to horizontal)
 parameter VELOCITY_START_X = 1;
 parameter VELOCITY_START_Y = -1;
   
@@ -78,7 +87,7 @@ parameter VELOCITY_START_Y = -1;
 // A larger value will result in a slower game.  The current setting will    
 // cause the machine to wait in the start state for 1/8 of a second between 
 // each invocation of the main loop.  The 50000000 is because we are
-// clocking our circuit with  a 50Mhz clock. 
+// clocking our circuit with a 50Mhz clock. 
   
 parameter LOOP_SPEED = 50000000/8;  // 8Hz
   
