@@ -4,8 +4,8 @@
 
 parameter bg_color = BLACK;
 parameter puck_color = PURPLE;
-parameter paddle_color = YELLOW;
-parameter border_color = WHITE;
+parameter paddle_color = GREEN;
+parameter border_color = RED;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -60,8 +60,6 @@ reg [DATA_WIDTH_COORD-1:0] paddle_x;
 
 // second ball flag
 reg ball2_flag;
-
-// The following are variables involved in the algorithm to shrink the paddle length
 
 // counter to shrink paddle
 integer paddle_counter = 0;  
@@ -445,16 +443,19 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       ERASE_PADDLE_LOOP: begin
 
         // See if we are done erasing the paddle (done with this state)
+       
+        if ((draw.x == paddle_x + paddle_length) & 
+            (paddle_x == RIGHT_LINE - paddle_length - 1'b1) ) begin     
+          
+          state <= DRAW_PADDLE_ENTER;  // next state is DRAW_PADDLE_ENTER
 
-        if (draw.x == paddle_x + paddle_length + 1'b1) begin     
+        end else if (draw.x == paddle_x + paddle_length + 1'b1) begin
+
+          state <= DRAW_PADDLE_ENTER;
         
-          // If so, the next state is DRAW_PADDLE_ENTER.
-      
-          state <= DRAW_PADDLE_ENTER;  // next state is DRAW_PADDLE
-
         end else begin
 
-          // We are not done erasing the paddle.  Erase the pixel and update
+          // We are not done erasing the paddle. Erase the pixel and update
           // draw.x by increasing it by 1
 
           draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
@@ -474,7 +475,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // go to DRAW_PADDLE_LOOP to draw the rest of the pixels of the paddle.
       // ============================================================
 
-      // x and y position is always at the left side of the paddle.
+      // paddle_x is the leftmost part of the paddle
 
       DRAW_PADDLE_ENTER: begin
 
@@ -487,12 +488,19 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             // If the user has pressed the right button check to make sure we
             // are not already at the rightmost position of the screen.
 
-            if (paddle_x <= RIGHT_LINE - paddle_length - 2) begin
+            // the following algorithm also prevents paddle from entering borders
+          
+            if (paddle_x < RIGHT_LINE - paddle_length - 2 ) begin
 
-                    // add 2 to the paddle position
-                      paddle_x = paddle_x + 2'b10;
+              paddle_x = paddle_x + 2'b10;
+            
+            end // if
 
-        end // if
+            if (paddle_x == RIGHT_LINE - paddle_length - 2) begin
+
+                      paddle_x = paddle_x + 2'b01;
+
+             end // if
 
             // If the user has pressed the left button check to make sure we
             // are not already at the leftmost position of the screen
@@ -503,13 +511,20 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             // If the user has pressed the left button check to make sure we
             // are not already at the leftmost position of the screen
 
-              if (paddle_x >= LEFT_LINE + 2) begin
+              if (paddle_x > LEFT_LINE + 2) begin
              
               // move paddle to two pixels to the left
              
                 paddle_x = paddle_x - 2'b10;
              
-              end // nested if
+              end // if
+
+              if (paddle_x == LEFT_LINE + 2) begin
+
+                paddle_x = paddle_x - 2'b01;
+
+              end // if
+
             end // if
         end // else
 
@@ -686,7 +701,8 @@ always_ff @(posedge CLOCK_50) begin
     paddle_length = PADDLE_WIDTH[DATA_WIDTH_COORD-1:0];
     paddle_counter = 0;
   
-  end else if (paddle_length <= 4) begin
+  end else if (paddle_length <= 3) begin  
+  // Use 3 because for some reason, you start with paddle 11 pixels wide
 
     paddle_counter <= 0;  
 
@@ -703,4 +719,3 @@ always_ff @(posedge CLOCK_50) begin
 
 end // always_ff
 endmodule
-
