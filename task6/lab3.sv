@@ -5,7 +5,7 @@
 parameter bg_color = BLACK;
 parameter puck_color = PURPLE;
 parameter paddle_color = GREEN;
-parameter border_color = RED;
+parameter border_color = WHITE;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -127,14 +127,14 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
 
       // Puck 1
-      puck.xx <= FACEOFF_X[INT_BITS + FRAC_BITS-1:0];
-      puck.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+      puck.xx[15:8] <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
+      puck.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
       puck_velocity.x <= VELOCITY_START_X[16:0];
       puck_velocity.y <= VELOCITY_START_Y[16:0];
 
       // Puck 2 
-      puck2.xx <= FACEOFF_X_2[INT_BITS + FRAC_BITS-1:0];
-      puck2.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+      puck2.xx[15:8] <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
+      puck2.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
       puck_velocity2.x <= VELOCITY_START_X_2[16:0];
       puck_velocity2.y <= VELOCITY_START_Y_2[16:0];
 
@@ -164,14 +164,14 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             draw.y <= 0;
 
             // Puck 1
-            puck.xx <= FACEOFF_X[INT_BITS + FRAC_BITS-1:0];
-            puck.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+            puck.xx[15:8] <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
+            puck.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
             puck_velocity.x <= VELOCITY_START_X[16:0];
             puck_velocity.y <= VELOCITY_START_Y[16:0];
 
             // Puck 2 
-            puck2.xx <= FACEOFF_X_2[INT_BITS + FRAC_BITS-1:0];
-            puck2.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+            puck2.xx[15:8] <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
+            puck2.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
             puck_velocity2.x <= VELOCITY_START_X_2[16:0];
             puck_velocity2.y <= VELOCITY_START_Y_2[16:0];
 
