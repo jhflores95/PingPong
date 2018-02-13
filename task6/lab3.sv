@@ -4,8 +4,8 @@
 
 parameter bg_color = BLACK;
 parameter puck_color = PURPLE;
-parameter paddle_color = GREEN;
-parameter border_color = WHITE;
+parameter paddle_color = WHITE;
+parameter border_color = YELLOW;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -113,7 +113,7 @@ assign y = draw.y[6:0];
 // the datapath operations that happen in each state.  From this Quartus II
 // will figure out a suitable datapath for you.
 
-// Notice that this is written as a pattern-3 process (sequential with an
+// Notice that this is written as a pattern-3 process (se quential with an
 // asynchronous reset)
 
 always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
@@ -491,7 +491,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
             // the following algorithm also prevents paddle from entering borders
           
-            if (paddle_x < RIGHT_LINE - paddle_length -2 ) begin
+            if (paddle_x < RIGHT_LINE - paddle_length - 2 ) begin
 
               paddle_x = paddle_x + 2'b10;
             
@@ -583,8 +583,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
           state <= DRAW_PUCK;
 
           // update the location of the puck
-          puck.xx = puck.xx + puck_velocity.x;
-          puck.yy = puck.yy + puck_velocity.y;
+          puck.xx = puck.xx + puck_velocity.x[15:0];
+          puck.yy = puck.yy + puck_velocity.y[15:0];
 
           // See if we have bounced off the top of the screen
           if (puck.yy == TOP_LINE + 1) begin
@@ -648,8 +648,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         state <= DRAW_PUCK2;
 
         // update puck location
-        puck2.xx = puck2.xx + puck_velocity2.x;
-        puck2.yy = puck2.yy + puck_velocity2.y;
+        puck2.xx = puck2.xx + puck_velocity2.x[15:0];
+        puck2.yy = puck2.yy + puck_velocity2.y[15:0];
 
         // See if we have bounced off the top of the screen
         if (puck2.yy == TOP_LINE + 1) begin
