@@ -5,6 +5,9 @@
 
 parameter DATA_WIDTH_COORD = 8;
 
+parameter FRAC_BITS = 8;
+parameter INT_BITS = 8;
+
 // This file provides useful parameters and types for Lab 3. 
 
 parameter SCREEN_WIDTH = 160;
@@ -13,6 +16,10 @@ parameter SCREEN_HEIGHT = 120;
 // Use the same precision for x and y as it simplifies life
 // A new type that describes a pixel location on the screen
 
+typedef struct {
+    reg [FRAC_BITS + INT_BITS-1:0] xx;
+    reg [FRAC_BITS + INT_BITS-1:0] yy;
+} pointy;
 
 typedef struct {
    reg [DATA_WIDTH_COORD-1:0] x;
@@ -22,9 +29,10 @@ typedef struct {
 // A new type that describes a velocity.  Each component of the
 // velocity can be either + or -, so use signed type
 
+// last bit is signed
 typedef struct {
-   reg signed [DATA_WIDTH_COORD-1:0] x;
-   reg signed [DATA_WIDTH_COORD-1:0] y;
+   reg signed [FRAC_BITS + INT_BITS:0] x;
+   reg signed [FRAC_BITS + INT_BITS:0] y;
 } velocity;
   
 //Colours.  
@@ -70,20 +78,22 @@ parameter FACEOFF_X_2 = SCREEN_WIDTH / 2 - 8;
 // Starting Velocity
 
 // Ball moves top right (45 deg to horizontal)
-parameter VELOCITY_START_X = 1;
-parameter VELOCITY_START_Y = -1;
+// (x,y) = (0.96, -0.25)
+parameter VELOCITY_START_X = 17'b00000000011110101; // 0 0000 0000 1111 0101 = 0.957
+parameter VELOCITY_START_Y = 17'b11111111111000000; // 1 1111 1111 1100 0000 = -0.25
 
 // Puck moves bottom right(-45 deg to horizontal)
-parameter VELOCITY_START_X_2 = 1;
-parameter VELOCITY_START_Y_2 = 1;
+// (x,y) = (0.86, -0.5)
+parameter VELOCITY_START_X_2 = 17'b00000000011011100; // 0 0000 0000 1101 1100 = 0.859
+parameter VELOCITY_START_Y_2 = 17'b11111111110000000; // 1 1111 1111 1000 0000 = -0.5
   
 // This parameter indicates how many times the counter should count in the
 // START state between each invocation of the main loop of the program.
 // A larger value will result in a slower game.  The current setting will    
-// cause the machine to wait in the start state for 1/14 of a second between 
+// cause the machine to wait in the start state for 1/8 of a second between 
 // each invocation of the main loop.  The 50000000 is because we are
 // clocking our circuit with a 50Mhz clock. 
   
-parameter LOOP_SPEED = 50000000/13; 
+parameter LOOP_SPEED = 50000000/8; 
   
 `endif // _my_incl_vh_

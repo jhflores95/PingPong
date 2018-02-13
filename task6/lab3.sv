@@ -50,6 +50,7 @@ wire [7:0] x;
 wire [6:0] y;
 reg [2:0] colour;
 reg plot;
+
 point draw;
 
 // The state of our state machine
@@ -77,13 +78,13 @@ reg [DATA_WIDTH_COORD-1:0] paddle_length;
 // "point" and "velocity" are structures which help declare the required x and y coords 
 // See lab3_inc.sv (21)
 
-point puck;
-point puck2; 
+pointy puck;
+pointy puck2; 
 
 // "puck_velocity.xy" represents the next pixel coordinate of the puck
 
 velocity puck_velocity;
-point puck_velocity2;
+velocity puck_velocity2;
 
 // This will be used as a counter variable in the IDLE state
 
@@ -106,7 +107,7 @@ assign x = draw.x[7:0];
 assign y = draw.y[6:0];
 
 // =============================================================================
-// This is the main loop.  As described above, it is written in a combined
+// This is the main loop. As described above, it is written in a combined
 // state machine / datapath style.  It looks like a state machine, but rather
 // than simply driving control signals in each state, the description describes
 // the datapath operations that happen in each state.  From this Quartus II
@@ -126,16 +127,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
 
       // Puck 1
-      puck.x <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
-      puck.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-      puck_velocity.x <= VELOCITY_START_X[DATA_WIDTH_COORD-1:0];
-      puck_velocity.y <= VELOCITY_START_Y[DATA_WIDTH_COORD-1:0];
+      puck.xx <= FACEOFF_X[INT_BITS + FRAC_BITS-1:0];
+      puck.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+      puck_velocity.x <= VELOCITY_START_X[16:0];
+      puck_velocity.y <= VELOCITY_START_Y[16:0];
 
-      // Puck 2
-      puck2.x <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
-      puck2.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-      puck_velocity2.x <= VELOCITY_START_X_2[DATA_WIDTH_COORD-1:0];
-      puck_velocity2.y <= VELOCITY_START_Y_2[DATA_WIDTH_COORD-1:0];
+      // Puck 2 
+      puck2.xx <= FACEOFF_X_2[INT_BITS + FRAC_BITS-1:0];
+      puck2.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+      puck_velocity2.x <= VELOCITY_START_X_2[16:0];
+      puck_velocity2.y <= VELOCITY_START_Y_2[16:0];
 
       // Player may choose to play with 2 pucks
       if (SW[0] == 1) 
@@ -163,16 +164,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             draw.y <= 0;
 
             // Puck 1
-            puck.x <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
-            puck.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-            puck_velocity.x <= VELOCITY_START_X[DATA_WIDTH_COORD-1:0];
-            puck_velocity.y <= VELOCITY_START_Y[DATA_WIDTH_COORD-1:0];
+            puck.xx <= FACEOFF_X[INT_BITS + FRAC_BITS-1:0];
+            puck.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+            puck_velocity.x <= VELOCITY_START_X[16:0];
+            puck_velocity.y <= VELOCITY_START_Y[16:0];
 
-            // Puck 2
-            puck2.x <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
-            puck2.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-            puck_velocity2.x <= VELOCITY_START_X_2[DATA_WIDTH_COORD-1:0];
-            puck_velocity2.y <= VELOCITY_START_Y_2[DATA_WIDTH_COORD-1:0];
+            // Puck 2 
+            puck2.xx <= FACEOFF_X_2[INT_BITS + FRAC_BITS-1:0];
+            puck2.yy <= FACEOFF_Y[INT_BITS + FRAC_BITS-1:0];
+            puck_velocity2.x <= VELOCITY_START_X_2[16:0];
+            puck_velocity2.y <= VELOCITY_START_Y_2[16:0];
 
             // Player may choose to play with 2 pucks
             if (SW[0] == 1)
@@ -576,40 +577,47 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         ERASE_PUCK:  begin
           colour <= bg_color;  // erase by setting color to background's color
           plot <= 1'b1;
-          draw <= puck;   // the x and y lines are driven by "puck" which
-                          // holds the location of the puck.
+          draw.x <= puck.xx[15:8];  
+          draw.y <= puck.yy[15:8];
+
           state <= DRAW_PUCK;
 
           // update the location of the puck
-          puck.x = puck.x + puck_velocity.x;
-          puck.y = puck.y + puck_velocity.y;
+          puck.xx = puck.xx + puck_velocity.x;
+          puck.yy = puck.yy + puck_velocity.y;
 
           // See if we have bounced off the top of the screen
-          if (puck.y == TOP_LINE + 1) begin
-            puck_velocity.y = 0-puck_velocity.y;
+          if (puck.yy == TOP_LINE + 1) begin
+            puck_velocity.y = 0 - puck_velocity.y;
           end // if
 
           // See if we have bounced off the right or left of the screen
-          if ( (puck.x == LEFT_LINE + 1) |
-              (puck.x == RIGHT_LINE - 1)) begin
-            puck_velocity.x = 0-puck_velocity.x;
+          if ( (puck.xx == LEFT_LINE + 1) |
+              (puck.xx == RIGHT_LINE - 1)) begin
+            
+            puck_velocity.x = 0 - puck_velocity.x;
+          
           end // if
 
-                  // see if we have bounced of the paddle on the bottom row of
-                  // the screen
+            // see if we have bounced of the paddle on the bottom row of
+            // the screen
 
-                if (puck.y == PADDLE_ROW - 1) begin
-                  if ((puck.x >= paddle_x) &
-                  (puck.x <= paddle_x + paddle_length)) begin
+            if (puck.yy == PADDLE_ROW - 1) begin
+              
+              if ((puck.xx >= paddle_x) &
+              (puck.xx <= paddle_x + paddle_length)) begin
 
-                  // we have bounced off the paddle
-                  puck_velocity.y = 0-puck_velocity.y;
-            end else begin
-                // we are at the bottom row, but missed the paddle.  Reset game!
-            state <= INIT;
-                end // if
-          end // if
-        end // ERASE_PUCK
+              // we have bounced off the paddle
+              puck_velocity.y = 0 - puck_velocity.y;
+        
+              end else begin
+            // we are at the bottom row, but missed the paddle.  Reset game!
+        
+          state <= INIT;
+           
+            end // if
+      end // if
+    end // ERASE_PUCK
 
       // ============================================================
       // The DRAW_PUCK draws the puck.  Note that since
@@ -619,7 +627,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       DRAW_PUCK: begin
         colour <= puck_color;
         plot <= 1'b1;
-        draw <= puck;
+        draw.x <= puck.xx[15:8];
+        draw.y <= puck.yy[15:8];
 
         // check if player chose to play with two pucks
           
@@ -633,33 +642,34 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       ERASE_PUCK2: begin
         colour <= bg_color;
         plot <= 1'b1;
-        draw <= puck2;
+        draw.x <= puck2.xx[15:8];
+        draw.y <= puck2.yy[15:8];
 
         state <= DRAW_PUCK2;
 
         // update puck location
-        puck2.x = puck2.x + puck_velocity2.x;
-        puck2.y = puck2.y + puck_velocity2.y;
+        puck2.xx = puck2.xx + puck_velocity2.x;
+        puck2.yy = puck2.yy + puck_velocity2.y;
 
         // See if we have bounced off the top of the screen
-        if (puck2.y == TOP_LINE + 1) begin
+        if (puck2.yy == TOP_LINE + 1) begin
           
           puck_velocity2.y = 0 - puck_velocity2.y;
         
         end // if
 
         // See if we have bounced off the right or left of the screen
-        if ( (puck2.x == LEFT_LINE + 1) | (puck2.x == RIGHT_LINE - 1)) begin
+        if ( (puck2.xx == LEFT_LINE + 1) | (puck2.xx == RIGHT_LINE - 1)) begin
         
-          puck_velocity2.x = 0-puck_velocity2.x;
+          puck_velocity2.x = 0 - puck_velocity2.x;
         
         end // if
 
         // see if we have bounced off the paddle on the bottom row of the screen
 
-        if (puck2.y == PADDLE_ROW - 1) begin
+        if (puck2.yy == PADDLE_ROW - 1) begin
          
-          if ((puck2.x >= paddle_x) & (puck2.x <= paddle_x + paddle_length)) begin
+          if ((puck2.xx >= paddle_x) & (puck2.xx <= paddle_x + paddle_length)) begin
                 
                 // we have bounced off the paddle
                 puck_velocity2.y = 0-puck_velocity2.y;
@@ -676,10 +686,13 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       DRAW_PUCK2: begin
         colour <= puck_color;
         plot <= 1'b1;
-        draw <= puck2;
+        draw.x <= puck2.xx[15:8];
+        draw.y <= puck2.yy[15:8];
 
         state <= IDLE;
+        
         // next state is IDLE (which is the delay state)
+
       end // case DRAW_PUCK2
 
  		  // ============================================================

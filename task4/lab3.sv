@@ -75,7 +75,7 @@ point puck2;
 // "puck_velocity.xy" represents the next pixel coordinate of the puck
 
 velocity puck_velocity;
-point puck_velocity2;
+velocity puck_velocity2;
 
 // This will be used as a counter variable in the IDLE state
 
