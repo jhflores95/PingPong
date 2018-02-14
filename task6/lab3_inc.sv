@@ -17,8 +17,8 @@ parameter SCREEN_HEIGHT = 120;
 // A new type that describes a pixel location on the screen
 
 typedef struct {
-    reg [FRAC_BITS + INT_BITS-1:0] xx;
-    reg [FRAC_BITS + INT_BITS-1:0] yy;
+    reg [FRAC_BITS + INT_BITS-1:0] x;
+    reg [FRAC_BITS + INT_BITS-1:0] y;
 } pointy;
 
 typedef struct {
@@ -31,8 +31,8 @@ typedef struct {
 
 // last bit is signed
 typedef struct {
-   reg signed [FRAC_BITS + INT_BITS:0] x;
-   reg signed [FRAC_BITS + INT_BITS:0] y;
+   reg signed [FRAC_BITS + INT_BITS-1:0] x;
+   reg signed [FRAC_BITS + INT_BITS-1:0] y;
 } velocity;
   
 //Colours.  
@@ -79,13 +79,13 @@ parameter FACEOFF_X_2 = SCREEN_WIDTH / 2 - 8;
 
 // Ball moves top right (45 deg to horizontal)
 // (x,y) = (0.96, -0.25)
-parameter VELOCITY_START_X = 17'b00000000011110101; // 0 0000 0000 1111 0101 = 0.957
-parameter VELOCITY_START_Y = 17'b11111111111000000; // 1 1111 1111 1100 0000 = -0.25
+parameter VELOCITY_START_X = 16'b0000000011110101; // 0000 0000 | 1111 0101 = 0.957
+parameter VELOCITY_START_Y = 16'b1111111111000000; // 1111 1111 | 1100 0000 = -0.25
 
 // Puck moves bottom right(-45 deg to horizontal)
 // (x,y) = (0.86, -0.5)
-parameter VELOCITY_START_X_2 = 17'b00000000011011100; // 0 0000 0000 1101 1100 = 0.859
-parameter VELOCITY_START_Y_2 = 17'b11111111110000000; // 1 1111 1111 1000 0000 = -0.5
+parameter VELOCITY_START_X_2 = 16'b0000000011011100; // 0000 0000 | 1101 1100 = 0.859
+parameter VELOCITY_START_Y_2 = 16'b1111111110000000; // 1111 1111 | 1000 0000 = -0.5
   
 // This parameter indicates how many times the counter should count in the
 // START state between each invocation of the main loop of the program.

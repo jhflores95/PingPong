@@ -127,16 +127,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
 
       // Puck 1
-      puck.xx[15:8] <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
-      puck.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-      puck_velocity.x <= VELOCITY_START_X[16:0];
-      puck_velocity.y <= VELOCITY_START_Y[16:0];
+      puck.x[15:8] <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
+      puck.y[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
+      puck_velocity.x <= VELOCITY_START_X;
+      puck_velocity.y <= VELOCITY_START_Y;
 
       // Puck 2 
-      puck2.xx[15:8] <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
-      puck2.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-      puck_velocity2.x <= VELOCITY_START_X_2[16:0];
-      puck_velocity2.y <= VELOCITY_START_Y_2[16:0];
+      puck2.x[15:8] <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
+      puck2.y[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
+      puck_velocity2.x <= VELOCITY_START_X_2;
+      puck_velocity2.y <= VELOCITY_START_Y_2;
 
       // Player may choose to play with 2 pucks
       if (SW[0] == 1) 
@@ -164,16 +164,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             draw.y <= 0;
 
             // Puck 1
-            puck.xx[15:8] <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
-            puck.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-            puck_velocity.x <= VELOCITY_START_X[16:0];
-            puck_velocity.y <= VELOCITY_START_Y[16:0];
+            puck.x[15:8] <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
+            puck.y[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
+            puck_velocity.x <= VELOCITY_START_X;
+            puck_velocity.y <= VELOCITY_START_Y;
 
             // Puck 2 
-            puck2.xx[15:8] <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
-            puck2.yy[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
-            puck_velocity2.x <= VELOCITY_START_X_2[16:0];
-            puck_velocity2.y <= VELOCITY_START_Y_2[16:0];
+            puck2.x[15:8] <= FACEOFF_X_2[DATA_WIDTH_COORD-1:0];
+            puck2.y[15:8] <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
+            puck_velocity2.x <= VELOCITY_START_X_2;
+            puck_velocity2.y <= VELOCITY_START_Y_2;
 
             // Player may choose to play with 2 pucks
             if (SW[0] == 1)
@@ -577,47 +577,64 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         ERASE_PUCK:  begin
           colour <= bg_color;  // erase by setting color to background's color
           plot <= 1'b1;
-          draw.x <= puck.xx[15:8];  
-          draw.y <= puck.yy[15:8];
-
+          draw.x <= puck.x[15:8];
+          draw.y <= puck.y[15:8];
           state <= DRAW_PUCK;
 
-          // update the location of the puck
-          puck.xx = puck.xx + puck_velocity.x[15:0];
-          puck.yy = puck.yy + puck_velocity.y[15:0];
+          // Border-puck position rounding mechanism
+          if (puck.x[7] == 1) begin
+          
+            puck.x = puck.x + 1'b1 + puck_velocity.x;
+          
+          end else begin
+          
+            puck.x = puck.x + puck_velocity.x;
+          
+          end // if
+
+          if (puck.y[7] == 1) begin
+            
+            puck.y = puck.y + 1'b1 + puck_velocity.y;
+          
+          end else begin
+          
+            puck.y = puck.y + puck_velocity.y;
+          
+          end // if
 
           // See if we have bounced off the top of the screen
-          if (puck.yy == TOP_LINE + 1) begin
+          if (puck.y[15:8] == TOP_LINE + 1) begin
+            
             puck_velocity.y = 0 - puck_velocity.y;
+          
           end // if
 
           // See if we have bounced off the right or left of the screen
-          if ( (puck.xx == LEFT_LINE + 1) |
-              (puck.xx == RIGHT_LINE - 1)) begin
+          if ((puck.x[15:8] == LEFT_LINE + 1) |
+              (puck.x[15:8] == RIGHT_LINE - 1)) begin
             
             puck_velocity.x = 0 - puck_velocity.x;
           
           end // if
 
-            // see if we have bounced of the paddle on the bottom row of
-            // the screen
+          // See if we have bounced of the paddle on the bottom row of screen
 
-            if (puck.yy == PADDLE_ROW - 1) begin
-              
-              if ((puck.xx >= paddle_x) &
-              (puck.xx <= paddle_x + paddle_length)) begin
+          if (puck.y[15:8] == PADDLE_ROW - 1) begin
+            
+            if ((puck.x[15:8] >= paddle_x) &
+            (puck.x[15:8] <= paddle_x + paddle_length)) begin
 
-              // we have bounced off the paddle
-              puck_velocity.y = 0 - puck_velocity.y;
-        
-              end else begin
-            // we are at the bottom row, but missed the paddle.  Reset game!
+            // We have bounced off the paddle
+            puck_velocity.y = 0 - puck_velocity.y;
+      
+          end else begin
+          // We are at the bottom row, but missed the paddle.  Reset game!
         
           state <= INIT;
            
-            end // if
-      end // if
-    end // ERASE_PUCK
+          end // if
+          end // if
+        end // ERASE_PUCK
 
       // ============================================================
       // The DRAW_PUCK draws the puck.  Note that since
@@ -627,39 +644,59 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       DRAW_PUCK: begin
         colour <= puck_color;
         plot <= 1'b1;
-        draw.x <= puck.xx[15:8];
-        draw.y <= puck.yy[15:8];
+        draw.x <= puck.x[15:8];
+        draw.y <= puck.y[15:8];
 
         // check if player chose to play with two pucks
+        if (ball2_flag == 1) 
+         
+          state <= ERASE_PUCK2;  // next state is DRAW_PUCK.
+         
+          else
+         
+          state <= IDLE;
           
-            if (ball2_flag == 1) 
-              state <= ERASE_PUCK2;  // next state is DRAW_PUCK.
-            else
-              state <= IDLE;
-              // next state is IDLE (which is the delay state)
+          // next state is IDLE (which is the delay state)
         end // case DRAW_PUCK
 
       ERASE_PUCK2: begin
         colour <= bg_color;
         plot <= 1'b1;
-        draw.x <= puck2.xx[15:8];
-        draw.y <= puck2.yy[15:8];
-
+        draw.x <= puck2.x[15:8];
+        draw.y <= puck2.y[15:8];
         state <= DRAW_PUCK2;
 
-        // update puck location
-        puck2.xx = puck2.xx + puck_velocity2.x[15:0];
-        puck2.yy = puck2.yy + puck_velocity2.y[15:0];
+        // Border-puck position rounding mechanism
+        
+        if (puck2.x[7] == 1) begin
+        
+          puck2.x = puck2.x + 1'b1 + puck_velocity2.x;
+        
+        end else begin
+        
+          puck2.x = puck2.x + puck_velocity2.x;
+        
+        end // if
+
+        if (puck2.y[7] == 1) begin
+        
+          puck2.y = puck2.y + 1'b1 + puck_velocity2.y;
+        
+        end else begin
+        
+          puck2.y = puck2.y + puck_velocity2.y;
+        
+        end // if
 
         // See if we have bounced off the top of the screen
-        if (puck2.yy == TOP_LINE + 1) begin
+        if (puck2.y[15:8] == TOP_LINE + 1) begin
           
           puck_velocity2.y = 0 - puck_velocity2.y;
         
         end // if
 
-        // See if we have bounced off the right or left of the screen
-        if ( (puck2.xx == LEFT_LINE + 1) | (puck2.xx == RIGHT_LINE - 1)) begin
+        // See if we have bounced off the right or l  eft of the screen
+        if ((puck2.x[15:8] == LEFT_LINE + 1) | (puck2.x[15:8] == RIGHT_LINE - 1)) begin
         
           puck_velocity2.x = 0 - puck_velocity2.x;
         
@@ -667,12 +704,12 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
         // see if we have bounced off the paddle on the bottom row of the screen
 
-        if (puck2.yy == PADDLE_ROW - 1) begin
+        if (puck2.y[15:8] == PADDLE_ROW - 1) begin
          
-          if ((puck2.xx >= paddle_x) & (puck2.xx <= paddle_x + paddle_length)) begin
+          if ((puck2.x[15:8] >= paddle_x) & (puck2.x[15:8] <= paddle_x + paddle_length)) begin
                 
-                // we have bounced off the paddle
-                puck_velocity2.y = 0-puck_velocity2.y;
+                // bounce off the paddle
+                puck_velocity2.y = 0 - puck_velocity2.y;
          
           end else begin
             
@@ -686,8 +723,9 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       DRAW_PUCK2: begin
         colour <= puck_color;
         plot <= 1'b1;
-        draw.x <= puck2.xx[15:8];
-        draw.y <= puck2.yy[15:8];
+
+        draw.x <= puck2.x[15:8];
+        draw.y <= puck2.y[15:8];
 
         state <= IDLE;
         
