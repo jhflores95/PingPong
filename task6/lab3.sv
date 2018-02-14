@@ -501,7 +501,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
                       paddle_x = paddle_x + 2'b01;
 
-             end // if
+            end // if
 
             // If the user has pressed the left button check to make sure we
             // are not already at the leftmost position of the screen

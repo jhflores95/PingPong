@@ -559,7 +559,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
           plot <= 1'b1;
           draw <= puck;   // the x and y lines are driven by "puck" which
                           // holds the location of the puck.
-         state <= DRAW_PUCK;
+          state <= DRAW_PUCK;
 
           // update the location of the puck
           puck.x = puck.x + puck_velocity.x;
