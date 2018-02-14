@@ -67,7 +67,7 @@ reg ball2_flag;
 integer paddle_counter = 0;  
 
 // amount of cycles for counter (last number indicates seconds between shrinkages)
-parameter shrink_time = 50000000 * 5;
+parameter shrink_time = 50000000 * 20;
 
 // variable to hold temporary value of paddle length
 reg [DATA_WIDTH_COORD-1:0] paddle_length;
@@ -191,10 +191,12 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             
                 // place paddle on left
                 paddle_x <= LEFT_LINE + 1;
+                paddle2_x <= LEFT_LINE + 1;
 
               end else begin
                 // place paddle on right
                 paddle_x <= ((RIGHT_LINE - paddle_length) - 1);
+                paddle2_x <= ((RIGHT_LINE - paddle_length) - 1);
             
               end   // else
             
@@ -311,7 +313,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // Set position to top right
 
       draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
-      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 1;
+      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 3;
 
       colour <= border_color;
       
@@ -355,7 +357,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // Set pixel to the top left
 
       draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
-      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 1;
+      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 3;
 
       // Next state!
 
@@ -745,8 +747,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         // See if we have bounced off the top paddle
         if (puck.y[15:8] == TOP_LINE + 1) begin
 
-          if ((puck.x[15:8] >= paddle_x) & 
-              (puck.x[15:8] <= paddle_x + paddle_length)) begin
+          if ((puck.x[15:8] >= paddle2_x) & 
+              (puck.x[15:8] <= paddle2_x + paddle_length)) begin
           
             puck_velocity.y = 0 - puck_velocity.y;
         
@@ -842,7 +844,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
           if ((puck2.x[15:8] >= paddle2_x) & 
               (puck2.x[15:8] <= paddle2_x + paddle_length)) begin
           
-            puck_velocity.y = 0 - puck_velocity.y;
+            puck_velocity2.y = 0 - puck_velocity2.y;
         
           end else begin
 
