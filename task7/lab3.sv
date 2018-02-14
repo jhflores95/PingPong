@@ -67,7 +67,7 @@ reg ball2_flag;
 integer paddle_counter = 0;  
 
 // amount of cycles for counter (last number indicates seconds between shrinkages)
-parameter shrink_time = 50000000 * 20;
+parameter shrink_time = 50000000 * 5;
 
 // variable to hold temporary value of paddle length
 reg [DATA_WIDTH_COORD-1:0] paddle_length;
@@ -226,8 +226,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             if (draw.x == SCREEN_WIDTH-1) begin
               if (draw.y == SCREEN_HEIGHT-1) begin
 
-         // We are done erasing the screen.  Set the next state
-         // to DRAW_TOP_ENTER
+         // We are done erasing the screen.
 
                 state <= DRAW_RIGHT_ENTER;
 
@@ -255,7 +254,6 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // rest of the bar.
       // ============================================================
 
-/*
       DRAW_TOP_ENTER: begin
 
       // Position x and y on the top left corner
@@ -301,7 +299,6 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
         end
         end //case DRAW_TOP_LOOP
- */       
       // ============================================================
       // The DRAW_RIGHT_ENTER state draws the first pixel of the bar on
       // the right-side of the screen.  The machine only stays here for
@@ -314,8 +311,9 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // Set position to top right
 
       draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
-      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 1'b1;  
-      // Minus 1 to start from screen edge
+      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 1;
+
+      colour <= border_color;
       
       // Move to next state
       
@@ -337,14 +335,13 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // We are done, so the next state is DRAW_LEFT_ENTER
 
               state <= DRAW_LEFT_ENTER;
-
-          end else begin
+            end else begin
 
       // Otherwise, update draw.y to point to the next pixel
 
-            draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
-            draw.y <= draw.y + 1'b1;
-          end
+              draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
+              draw.y <= draw.y + 1'b1;
+            end
            end //case DRAW_RIGHT_LOOP
       // ============================================================
       // The DRAW_LEFT_ENTER state draws the first pixel of the bar on
@@ -355,15 +352,15 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
       DRAW_LEFT_ENTER: begin
 
-        // Set pixel to the top left
+      // Set pixel to the top left
 
-        draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
-        draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 1'b1;
-        // Minus 1 to start from screen edge
+      draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
+      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 1;
 
-        // Next state!
-        state <= DRAW_LEFT_LOOP;
-        end // case DRAW_LEFT_ENTER
+      // Next state!
+
+      state <= DRAW_LEFT_LOOP;
+      end // case DRAW_LEFT_ENTER
 
       // ================================================================
       // The DRAW_LEFT_LOOP state is used to draw the rest of the bar on
@@ -401,7 +398,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // We have to build a COUNTER to count a certain number of clock cycles.
       // ==============================================================================
 
-      IDLE: begin
+        IDLE: begin
 
           // See if we are still counting.  LOOP_SPEED indicates the maximum
           // value of the counter
@@ -439,7 +436,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
         plot <= 1'b1;
         state <= ERASE_PADDLE_LOOP;
-      end // case ERASE_PADDLE_ENTER
+     end // case ERASE_PADDLE_ENTER
 
       // ============================================================================
       // In the ERASE_PADDLE_LOOP state, we will erase the rest of the paddle.
@@ -455,7 +452,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         if ((draw.x == paddle_x + paddle_length) & 
             (paddle_x == RIGHT_LINE - paddle_length - 1'b1) ) begin     
           
-          state <= DRAW_PADDLE_ENTER;
+          state <= DRAW_PADDLE_ENTER;  // next state is DRAW_PADDLE_ENTER
 
         end else if (draw.x == paddle_x + paddle_length + 1'b1) begin
 
@@ -473,7 +470,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
           // next time through the process (next rising clock edge) until
           // the paddle has been erased
 
-        end // else
+          end // if
       end //case ERASE_PADDLE_LOOP
 
       // ============================================================
@@ -493,10 +490,12 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
         if (KEY[0] == 1'b0) begin
 
-          if (SW[3] == 0) begin   // bottom paddle control
+          if (SW[3] == 0) begin
 
-            // Make sure we are not already at the rightmost position of the screen
-            // The following algorithm prevents paddle from entering borders
+            // If the user has pressed the right button check to make sure we
+            // are not already at the rightmost position of the screen.
+
+            // the following algorithm also prevents paddle from entering borders
           
             if (paddle_x < RIGHT_LINE - paddle_length - 2 ) begin
 
@@ -509,47 +508,48 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
               paddle_x = paddle_x + 2'b01;
 
             end // if
-          
+
+            // If the user has pressed the left button check to make sure we
+            // are not already at the leftmost position of the screen
+
           end // if SW[3]
 
         end else begin
+            if (KEY[1] == 1'b0) begin
 
-          if (KEY[1] == 1'b0) begin
+              if (SW[3] == 0) begin
 
-            if (SW[3] == 0) begin   // bottom paddle control
+                // If the user has pressed the left button check to make sure we
+                // are not already at the leftmost position of the screen
 
-              // Make sure we are not already at the leftmost position of the screen
-
-              if (paddle_x > LEFT_LINE + 2) begin
-             
+                if (paddle_x > LEFT_LINE + 2) begin
+              
                 // move paddle to two pixels to the left
-             
-                paddle_x = paddle_x - 2'b10;
-             
-              end // if
+              
+                  paddle_x = paddle_x - 2'b10;
+              
+                end // if
 
-              if (paddle_x == LEFT_LINE + 2) begin
+                if (paddle_x == LEFT_LINE + 2) begin
 
-                paddle_x = paddle_x - 2'b01;
+                  paddle_x = paddle_x - 2'b01;
 
-              end // if
+                end // if
 
-            end // if SW[3]
-
-          end // if KEY[1]
-        
+              end // if SW[3]
+            end // if KEY[1]
         end // else
-      
-        // In this state, draw the first element of the paddle
 
-        draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-        draw.x <= paddle_x;  // get ready for next state
+              // In this state, draw the first element of the paddle
 
-        // Enter paddle color
-        colour <= paddle_color;
+              draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
+              draw.x <= paddle_x;  // get ready for next state
 
-        // Next state
-        state <= DRAW_PADDLE_LOOP;
+              // Enter paddle color
+              colour <= paddle_color;
+
+              // Next state
+              state <= DRAW_PADDLE_LOOP;
 
       end // case DRAW_PADDLE_ENTER
 
@@ -562,16 +562,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       DRAW_PADDLE_LOOP: begin
 
         if (draw.x == paddle_x + paddle_length) begin
-           
-          plot <= 1'b0;
-          state <= ERASE_PADDLE2_ENTER;
+
+            plot <= 1'b0;
+            state <= ERASE_PADDLE2_ENTER;
         
         end else begin 
 
         // Otherwise, update the x counter to the next location in the paddle
 
-          draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-          draw.x <= draw.x + 1'b1;
+            draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
+            draw.x <= draw.x + 1'b1;
 
         // state stays the same so we come back to this state until we
         // are done drawing the paddle
@@ -579,133 +579,134 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         end // else
       end // case DRAW_PADDLE_LOOP
 
-    ERASE_PADDLE2_ENTER: begin
-
-      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
-      draw.x <= paddle2_x;
-
-      // Choose background color
-      colour <= bg_color;
-
-      plot <= 1'b1;
-      state <= ERASE_PADDLE2_LOOP;
-    
-    end // case ERASE_PADDLE2_LOOP
-
-    ERASE_PADDLE2_LOOP: begin
-
-      if ((draw.x == paddle2_x + paddle_length) & 
-          (paddle_x == RIGHT_LINE - paddle_length - 1'b1) ) begin     
-        
-        state <= DRAW_PADDLE2_ENTER;
-
-      end else if (draw.x == paddle2_x + paddle_length + 1'b1) begin
-
-        state <= DRAW_PADDLE2_ENTER;
-      
-      end else begin
-
-        // We are not done erasing the paddle. Erase the pixel and update
-        // draw.x by increasing it by 1
+      ERASE_PADDLE2_ENTER: begin
 
         draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
-        draw.x <= draw.x + 1'b1;
+        draw.x <= paddle2_x;
 
-        // State stays the same, since we want to come back to this state
-        // next time through the process (next rising clock edge) until
-        // the paddle has been erased
+        // Choose background color
+        colour <= bg_color;
 
-        end // if
+        plot <= 1'b1;
+        state <= ERASE_PADDLE2_LOOP;
 
-    end // case ERASE_PADDLE2_LOOP
+      end // case
 
-    DRAW_PADDLE2_ENTER: begin
+      ERASE_PADDLE2_LOOP: begin
 
-      // We need to figure out the x location of the paddle before the
-      // start of DRAW_PADDLE_LOOP. The x location does not change, unless
-      // the user has pressed one of the buttons.
-
-      if (KEY[0] == 1'b0) begin
-
-        if (SW[3] == 1) begin   // top paddle control
-
-          // Make sure we are not already at the rightmost position of the screen
-          // The following algorithm prevents paddle from entering borders
-        
-          if (paddle2_x < RIGHT_LINE - paddle_length - 2 ) begin
-
-            paddle2_x = paddle2_x + 2;
+        // See if we are done erasing the paddle (done with this state)
+       
+        if ((draw.x == paddle2_x + paddle_length) & 
+            (paddle2_x == RIGHT_LINE - paddle_length - 1'b1) ) begin     
           
-          end // if
+          state <= DRAW_PADDLE2_ENTER;  // next state is DRAW_PADDLE_ENTER
 
-          if (paddle2_x == RIGHT_LINE - paddle_length - 2) begin
+        end else if (draw.x == paddle2_x + paddle_length + 1'b1) begin
 
-            paddle2_x = paddle2_x + 1;
-
-          end // if
+          state <= DRAW_PADDLE2_ENTER;
         
-        end // if
+        end else begin
+
+          // We are not done erasing the paddle. Erase the pixel and update
+          // draw.x by increasing it by 1
+
+          draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+          draw.x <= draw.x + 1'b1;
+
+          // State stays the same, since we want to come back to this state
+          // next time through the process (next rising clock edge) until
+          // the paddle has been erased
+
+          end // if
+
+      end  // case
+
+      DRAW_PADDLE2_ENTER: begin
+
+        if (KEY[0] == 1'b0) begin
+
+          if (SW[3] == 1) begin
+
+            // If the user has pressed the right button check to make sure we
+            // are not already at the rightmost position of the screen.
+
+            // the following algorithm also prevents paddle from entering borders
+          
+            if (paddle2_x < RIGHT_LINE - paddle_length - 2 ) begin
+
+              paddle2_x = paddle2_x + 2;
+            
+            end // if
+
+            if (paddle2_x == RIGHT_LINE - paddle_length - 2) begin
+
+                      paddle2_x = paddle2_x + 1;
+
+            end // if
+
+            // If the user has pressed the left button check to make sure we
+            // are not already at the leftmost position of the screen
+
+          end // if SW[3]
 
       end else begin
+          if (KEY[1] == 1'b0) begin
 
-        if (KEY[1] == 1'b0) begin
+            if (SW[3] == 1) begin
 
-          if (SW[3] == 1) begin   // bottom paddle control
+              // If the user has pressed the left button check to make sure we
+              // are not already at the leftmost position of the screen
 
-            // Make sure we are not already at the leftmost position of the screen
-
-            if (paddle2_x > LEFT_LINE + 2) begin
+              if (paddle2_x > LEFT_LINE + 2) begin
             
               // move paddle to two pixels to the left
             
-              paddle2_x = paddle2_x - 2'b10;
+                paddle2_x = paddle2_x - 2;
             
-            end // if
+              end // if
 
-            if (paddle2_x == LEFT_LINE + 2) begin
+              if (paddle2_x == LEFT_LINE + 2) begin
 
-              paddle2_x = paddle2_x - 2'b01;
+                paddle2_x = paddle2_x - 1;
 
-            end // if
+              end // if
 
-          end // if
+            end // if SW[3]
+          end // if KEY[1]
+      end // else
 
-        end // if
-      
-      end  // else
-    
-      // In this state, draw the first element of the paddle
+            // In this state, draw the first element of the paddle
 
-      draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
-      draw.x <= paddle2_x;  // get ready for next state
+            draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+            draw.x <= paddle2_x;  // get ready for next state
 
-      // Enter paddle color
-      colour <= paddle_color;
+            // Enter paddle color
+            colour <= paddle_color;
 
-      // Next state
-      state <= DRAW_PADDLE_LOOP;
+            // Next state
+            state <= DRAW_PADDLE2_LOOP;
+     
+      end  // case
 
-    end // case DRAW_PADDLE_ENTER
+      DRAW_PADDLE2_LOOP: begin
 
-    DRAW_PADDLE2_LOOP: begin
+        if (draw.x == paddle2_x + paddle_length) begin
 
-      if (draw.x == paddle2_x + paddle_length) begin
-
-        plot <= 1'b0; 
-        state <= ERASE_PUCK;
+            plot <= 1'b0;
+            state <= ERASE_PUCK;
         
-      end else begin 
+        end else begin 
 
         // Otherwise, update the x counter to the next location in the paddle
 
-        draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-        draw.x <= draw.x + 1'b1;
+            draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+            draw.x <= draw.x + 1'b1;
 
         // state stays the same so we come back to this state until we
         // are done drawing the paddle
 
-      end // else
-    end  // case DRAW_PADDLE2_LOOP
+        end // else
+      end // case DRAW_PADDLE2_LOOP
 
       // ============================================================
       // The ERASE_PUCK state erases the puck from its old location
@@ -713,67 +714,75 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // the puck is only one pixel, we only need to be here for one cycle.
       // ============================================================
 
-        ERASE_PUCK:  begin
-          colour <= bg_color;  // erase by setting color to background's color
-          plot <= 1'b1;
-          draw.x <= puck.x[15:8];
-          draw.y <= puck.y[15:8];
-          state <= DRAW_PUCK;
+      ERASE_PUCK:  begin
+        colour <= bg_color;  // erase by setting color to background's color
+        plot <= 1'b1;
+        draw.x <= puck.x[15:8];
+        draw.y <= puck.y[15:8];
+        state <= DRAW_PUCK;
 
-          // Border-puck position rounding mechanism
-          if (puck.x[7] == 1) begin
-          
-            puck.x = puck.x + 1'b1 + puck_velocity.x;
-          
-          end else begin
-          
-            puck.x = puck.x + puck_velocity.x;
-          
-          end // if
-
-          if (puck.y[7] == 1) begin
-            
-            puck.y = puck.y + 1'b1 + puck_velocity.y;
-          
-          end else begin
-          
-            puck.y = puck.y + puck_velocity.y;
-          
-          end // if
-
-          // See if we have bounced off the top of the screen
-          if (puck.y[15:8] == TOP_LINE + 1) begin
-            
-            puck_velocity.y = 0 - puck_velocity.y;
-          
-          end // if
-
-          // See if we have bounced off the right or left of the screen
-          if ((puck.x[15:8] == LEFT_LINE + 1) |
-              (puck.x[15:8] == RIGHT_LINE - 1)) begin
-            
-            puck_velocity.x = 0 - puck_velocity.x;
-          
-          end // if
-
-          // See if we have bounced of the paddle on the bottom row of screen
-
-          if (puck.y[15:8] == PADDLE_ROW - 1) begin
-            
-            if ((puck.x[15:8] >= paddle_x) &
-            (puck.x[15:8] <= paddle_x + paddle_length)) begin
-
-            // We have bounced off the paddle
-            puck_velocity.y = 0 - puck_velocity.y;
-      
-          end else begin
-          // We are at the bottom row, but missed the paddle.  Reset game!
+        // Border-puck position rounding mechanism
+        if (puck.x[7] == 1) begin
         
+          puck.x = puck.x + 1'b1 + puck_velocity.x;
+        
+        end else begin
+        
+          puck.x = puck.x + puck_velocity.x;
+        
+        end // if
+
+        if (puck.y[7] == 1) begin
+          
+          puck.y = puck.y + 1'b1 + puck_velocity.y;
+        
+        end else begin
+        
+          puck.y = puck.y + puck_velocity.y;
+        
+        end // if
+
+        // See if we have bounced off the top paddle
+        if (puck.y[15:8] == TOP_LINE + 1) begin
+
+          if ((puck.x[15:8] >= paddle_x) & 
+              (puck.x[15:8] <= paddle_x + paddle_length)) begin
+          
+            puck_velocity.y = 0 - puck_velocity.y;
+        
+          end else begin
+
           state <= INIT;
-           
-          end // if
-          end // if
-        end // ERASE_PUCK
+
+          end // else
+        end // if
+
+        // See if we have bounced off the right or left of the screen
+        if ((puck.x[15:8] == LEFT_LINE + 1) |
+            (puck.x[15:8] == RIGHT_LINE - 1)) begin
+          
+          puck_velocity.x = 0 - puck_velocity.x;
+        
+        end // if
+
+        // See if we have bounced of the paddle on the bottom row of screen
+
+        if (puck.y[15:8] == PADDLE_ROW - 1) begin
+          
+          if ((puck.x[15:8] >= paddle_x) &
+          (puck.x[15:8] <= paddle_x + paddle_length)) begin
+
+          // We have bounced off the paddle
+          puck_velocity.y = 0 - puck_velocity.y;
+    
+        end else begin
+        // We are at the bottom row, but missed the paddle.  Reset game!
+      
+        state <= INIT;
+          
+        end // if
+        end // if
+      end // ERASE_PUCK
 
       // ============================================================
       // The DRAW_PUCK draws the puck.  Note that since
@@ -787,18 +796,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         draw.y <= puck.y[15:8];
 
         // check if player chose to play with two pucks
-        if (ball2_flag == 1) begin
+        if (ball2_flag == 1) 
          
           state <= ERASE_PUCK2;  // next state is DRAW_PUCK.
          
-        end else begin
+          else
          
           state <= IDLE;
-        
-        end // else
           
           // next state is IDLE (which is the delay state)
-      end // case DRAW_PUCK
+        end // case DRAW_PUCK
 
       ERASE_PUCK2: begin
         colour <= bg_color;
@@ -829,14 +836,22 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         
         end // if
 
-        // See if we have bounced off the top of the screen
+        // See if we have bounced off the top paddle
         if (puck2.y[15:8] == TOP_LINE + 1) begin
+
+          if ((puck2.x[15:8] >= paddle2_x) & 
+              (puck2.x[15:8] <= paddle2_x + paddle_length)) begin
           
-          puck_velocity2.y = 0 - puck_velocity2.y;
+            puck_velocity.y = 0 - puck_velocity.y;
         
+          end else begin
+
+          state <= INIT;
+
+          end // else
         end // if
 
-        // See if we have bounced off the right or l  eft of the screen
+        // See if we have bounced off the right or left of the screen
         if ((puck2.x[15:8] == LEFT_LINE + 1) | (puck2.x[15:8] == RIGHT_LINE - 1)) begin
         
           puck_velocity2.x = 0 - puck_velocity2.x;
@@ -881,7 +896,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         default:
         state <= START;
 
-      endcase
+     endcase
     end
 end
 

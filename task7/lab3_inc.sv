@@ -48,7 +48,8 @@ parameter WHITE = 3'b111;
 // We are going to write this as a state machine.  The following
 // is a list of states that the state machine can be in.
 
-typedef enum int unsigned {INIT = 1 , START = 2, 
+typedef enum int unsigned {INIT = 1 , START = 2, DRAW_TOP_ENTER = 4, 
+              DRAW_TOP_LOOP = 8,  
               DRAW_RIGHT_ENTER = 16, DRAW_RIGHT_LOOP = 32,
               DRAW_LEFT_ENTER = 64, DRAW_LEFT_LOOP = 128, IDLE = 256, 
               ERASE_PADDLE_ENTER = 512, ERASE_PADDLE_LOOP = 1024, 
