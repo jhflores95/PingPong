@@ -96,6 +96,6 @@ parameter VELOCITY_START_Y_2 = 16'b1111111110000000; // 1111 1111 | 1000 0000 = 
 // each invocation of the main loop.  The 50000000 is because we are
 // clocking our circuit with a 50Mhz clock. 
   
-parameter LOOP_SPEED = 50000000/14; 
+parameter LOOP_SPEED = 50000000/8; 
   
 `endif // _my_incl_vh_

@@ -498,7 +498,11 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             // puck1 is closer than puck2 and moving toward bottom paddle
             if (puck.x[15:8] <= paddle_x) begin
               
-              if (paddle_x != LEFT_LINE + 1) begin
+              if (paddle_x == LEFT_LINE + 2) begin
+
+                paddle_x = paddle_x - 1;
+
+              end else if (paddle_x > LEFT_LINE + 2) begin
 
                 // puck is left of paddle
                 paddle_x = paddle_x - 2;
@@ -510,7 +514,11 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             if (puck.x[15:8] >= (paddle_x + paddle_length)) begin
               
               // puck2 is right of paddle
-              if (paddle_x != RIGHT_LINE - paddle_length - 1) begin
+              if (paddle_x == RIGHT_LINE - paddle_length - 2) begin
+
+                paddle_x = paddle_x + 1;
+
+              end else if (paddle_x < RIGHT_LINE - paddle_length - 2) begin
 
                 paddle_x = paddle_x + 2;
 
@@ -525,9 +533,13 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             // puck2 is closer than puck1 and moving toward bottom paddle
             if (puck2.x[15:8] <= paddle_x) begin
 
-              if (paddle_x != LEFT_LINE + 1) begin
+              if (paddle_x == LEFT_LINE + 2) begin
 
                 // puck2 is left of paddle
+                paddle_x = paddle_x - 1;
+
+              end else if (paddle_x > LEFT_LINE + 2) begin
+
                 paddle_x = paddle_x - 2;
 
               end // else
@@ -537,7 +549,11 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             if (puck2.x[15:8] >= (paddle_x + paddle_length)) begin
               // puck2 is right of paddle
 
-              if (paddle_x != RIGHT_LINE - paddle_length - 1) begin
+              if (paddle_x == RIGHT_LINE - paddle_length - 2) begin
+
+                paddle_x = paddle_x + 1;
+
+              end else if (paddle_x < RIGHT_LINE - paddle_length - 2) begin
 
                 paddle_x = paddle_x + 2;
 
@@ -692,46 +708,63 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
             // puck1 is closer than puck2 and moving toward top paddle
             if (puck.x[15:8] <= paddle2_x) begin
               
-              if (paddle2_x != LEFT_LINE + 1) begin
+              // puck is left of paddle
+             
+              if (paddle2_x == LEFT_LINE + 2) begin
 
-                // puck is left of paddle
+                paddle2_x = paddle2_x - 1;
+
+              end else if (paddle2_x > LEFT_LINE + 2) begin
+
                 paddle2_x = paddle2_x - 2;
 
               end // else
-            
-            end  // if
 
+            end // if
+            
             if (puck.x[15:8] >= (paddle2_x + paddle_length)) begin
               
               // puck2 is right of paddle
-              if (paddle2_x != (RIGHT_LINE - paddle_length - 1)) begin
+              if (paddle2_x == RIGHT_LINE - paddle_length - 2) begin
+
+                paddle2_x = paddle2_x + 1;
+
+              end else if (paddle2_x < RIGHT_LINE - paddle_length - 2) begin
 
                 paddle2_x = paddle2_x + 2;
+              
+              end // else
 
-              end // if
-       
             end // if
-          
-          end  // if
+       
+          end // if
 
           if ((puck_velocity2.y[15] == 1) & ((puck2.y[15:8] < puck.y[15:8]) | (puck_velocity.y[15] == 0))) begin
 
             // puck2 is closer than puck1 and moving toward top paddle
             if (puck2.x[15:8] <= paddle2_x) begin
 
-              if (paddle2_x != LEFT_LINE + 1) begin
+              if (paddle2_x == LEFT_LINE + 2) begin
+
+                paddle2_x = paddle2_x - 1;
+
+              end else if (paddle2_x > LEFT_LINE + 2) begin
 
                 // puck2 is left of paddle
                 paddle2_x = paddle2_x - 2;
 
               end // else
 
-            end // if
+            end // else
 
-            if (puck2.x[15:8] >= (paddle2_x + paddle_length)) begin
+            if (puck2.x[15:8] >= paddle2_x + paddle_length) begin
               // puck2 is right of paddle
 
-              if (paddle2_x != (RIGHT_LINE - paddle_length - 1)) begin
+              if (paddle2_x == RIGHT_LINE - paddle_length - 2) begin
+
+                paddle2_x = paddle2_x + 1;
+
+              end else if (paddle2_x < RIGHT_LINE - paddle_length - 2) begin
 
                 paddle2_x = paddle2_x + 2;
 
