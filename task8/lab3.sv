@@ -659,7 +659,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
       ERASE_PADDLE2_ENTER: begin
 
-        draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+        draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 2;
         draw.x <= paddle2_x;
 
         // Choose background color
@@ -688,7 +688,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
           // We are not done erasing the paddle. Erase the pixel and update
           // draw.x by increasing it by 1
 
-          draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+          draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 2;
           draw.x <= draw.x + 1'b1;
 
           // State stays the same, since we want to come back to this state
@@ -831,7 +831,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
             // In this state, draw the first element of the paddle
 
-            draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+            draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 2;
             draw.x <= paddle2_x;  // get ready for next state
 
             // Enter paddle color
@@ -853,7 +853,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
 
         // Otherwise, update the x counter to the next location in the paddle
 
-            draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+            draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0] - 2;
             draw.x <= draw.x + 1'b1;
 
         // state stays the same so we come back to this state until we
@@ -897,7 +897,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         end // if
 
         // See if we have bounced off the top paddle
-        if (puck.y[15:8] == TOP_LINE + 1) begin
+        if (puck.y[15:8] == TOP_LINE - 1) begin
 
           if ((puck.x[15:8] >= paddle2_x) & 
               (puck.x[15:8] <= paddle2_x + paddle_length)) begin
@@ -991,7 +991,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
         end // if
 
         // See if we have bounced off the top paddle
-        if (puck2.y[15:8] == TOP_LINE + 1) begin
+        if (puck2.y[15:8] == TOP_LINE - 1) begin
 
           if ((puck2.x[15:8] >= paddle2_x) & 
               (puck2.x[15:8] <= paddle2_x + paddle_length)) begin
