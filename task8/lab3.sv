@@ -3,9 +3,10 @@
 // Pick your poison
 
 parameter bg_color = BLACK;
-parameter puck_color = PURPLE;
-parameter paddle_color = WHITE;
-parameter border_color = YELLOW;
+parameter puck1_color = PURPLE;
+parameter puck2_color = RED;
+parameter paddle_color = GREEN;
+parameter border_color = WHITE;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -943,7 +944,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       // ============================================================
 
       DRAW_PUCK: begin
-        colour <= puck_color;
+        colour <= puck1_color;
         plot <= 1'b1;
         draw.x <= puck.x[15:8];
         draw.y <= puck.y[15:8];
@@ -1030,7 +1031,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3]) begin
       end // ERASE_PUCK2
 
       DRAW_PUCK2: begin
-        colour <= puck_color;
+        colour <= puck2_color;
         plot <= 1'b1;
 
         draw.x <= puck2.x[15:8];

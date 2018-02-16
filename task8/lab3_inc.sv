@@ -73,18 +73,18 @@ parameter RIGHT_LINE = SCREEN_WIDTH - 5;
 parameter LEFT_LINE = 5;
 
 // These parameters describe the starting location for the puck(s)
-parameter FACEOFF_X = SCREEN_WIDTH / 2 + 8;
+parameter FACEOFF_X = SCREEN_WIDTH / 2 + (SCREEN_WIDTH / 4) ;
 parameter FACEOFF_Y = SCREEN_HEIGHT / 2;
-parameter FACEOFF_X_2 = SCREEN_WIDTH / 2 - 8;
+parameter FACEOFF_X_2 = SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 4);
   
 // Starting Velocity
 
-// Ball moves top right (45 deg to horizontal)
+// Ball moves top right
 // (x,y) = (0.96, -0.25)
 parameter VELOCITY_START_X = 16'b0000000011110101; // 0000 0000 | 1111 0101 = 0.957
 parameter VELOCITY_START_Y = 16'b1111111111000000; // 1111 1111 | 1100 0000 = -0.25
 
-// Puck moves bottom right(-45 deg to horizontal)
+// Puck moves bottom right
 // (x,y) = (0.86, -0.5)
 parameter VELOCITY_START_X_2 = 16'b0000000011011100; // 0000 0000 | 1101 1100 = 0.859
 parameter VELOCITY_START_Y_2 = 16'b1111111110000000; // 1111 1111 | 1000 0000 = -0.5
